@@ -1,6 +1,6 @@
 name: Greetings
 
-on: [pull_request, issues, commit_comment,push]
+on: [pull_request, issues,push]
 
 jobs:
   greeting:
