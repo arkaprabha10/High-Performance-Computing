@@ -1,8 +1,31 @@
-#include <iostream>
-#include <cmath>
-#include <vector>
+#include <bits/stdc++.h>
+#include<fstream>
 #include<omp.h>
+#include<time.h>
+
 using namespace std;
+
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+//  Using the MONOTONIC clock 
+#define CLK CLOCK_MONOTONIC
+
+static long num_steps=100000; 
+double step;
+struct timespec diff(struct timespec start, struct timespec end);
+
+struct timespec diff(struct timespec start, struct timespec end){
+	struct timespec temp;
+	if((end.tv_nsec-start.tv_nsec)<0){
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	}
+	else{
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
+
 
 /*
 The main method is in this program itself.
@@ -47,7 +70,6 @@ class Simplex{
         bool isUnbounded;
 
     public:
-        //Initialize matrices
         Simplex(std::vector <std::vector<float> > matrix,std::vector<float> b ,std::vector<float> c){
             maximum = 0;
             isUnbounded = false;
@@ -80,7 +102,7 @@ class Simplex{
 
 
         }
-        //
+
         bool simplexAlgorithmCalculataion(){
             //check whether the table is optimal,if optimal no need to process further
             if(checkOptimality()==true){
@@ -120,7 +142,7 @@ class Simplex{
             //if all the constraints are positive now,the table is optimal
             if(positveValueCount == C.size()){
                 isOptimal = true;
-                print();
+             //   print();
             }
             return isOptimal;
         }
@@ -276,11 +298,11 @@ class Simplex{
         void CalculateSimplex(){
             bool end = false;
 
-            cout<<"initial array(Not optimal)"<<endl;
-            print();
+            //cout<<"initial array(Not optimal)"<<endl;
+            //print();
 
-            cout<<" "<<endl;
-            cout<<"final array(Optimal solution)"<<endl;
+            //cout<<" "<<endl;
+            //cout<<"final array(Optimal solution)"<<endl;
 
 
             while(!end){
@@ -294,7 +316,7 @@ class Simplex{
 
                     }
             }
-            cout<<"Answers for the Constraints of variables"<<endl;
+//            cout<<"Answers for the Constraints of variables"<<endl;
 
             for(int i=0;i< A.size(); i++){  //every basic column has the values, get it form B array
                 int count0 = 0;
@@ -309,7 +331,7 @@ class Simplex{
 
 
                 }
-
+/*
                 if(count0 == rows -1 ){
 
                     cout<<"variable"<<index+1<<": "<<B[index]<<endl;  //every basic column has the values, get it form B array
@@ -318,7 +340,7 @@ class Simplex{
                     cout<<"variable"<<index+1<<": "<<0<<endl;
 
                 }
-
+*/
             }
 
 
@@ -332,9 +354,94 @@ class Simplex{
 
 };
 
+
+vector< vector<float> > read_recordA(const char* filename) 
+{ 
+
+	// File pointer 
+	fstream newfile; 
+
+
+	// Get the roll number 
+	// of which the data is required 
+	int rollnum, roll2, count = 0; 
+
+	vector<float> row; 
+   vector< vector<float> > ans;
+	string line, word, temp; 
+
+	newfile.open(filename,ios::in); //open a file to perform read operation using file object
+   if (newfile.is_open()){   //checking whether the file is open
+      string tp;
+      while(getline(newfile, tp)){ //read data from file object and put it into string.
+         //cout <<"\n"; //print the data of the string
+         row.clear();
+         std::string delimiter = ",";
+          
+          size_t pos = 0;
+          
+          while ((pos = tp.find(delimiter)) != std::string::npos) {
+              float token = stof(tp.substr(0, pos));
+             // std::cout << token << " ";
+              row.push_back(token);
+              tp.erase(0, pos + delimiter.length());
+          }
+          ans.push_back(row);
+      }
+      newfile.close(); //close the file object.
+   }
+   return ans;
+}
+
+
+vector<float>  read_record(const char* filename) 
+{ 
+
+	// File pointer 
+	fstream newfile; 
+
+
+	// Get the roll number 
+	// of which the data is required 
+	int rollnum, roll2, count = 0; 
+
+	vector<float> row; 
+   //vector< vector<float> > ans;
+	string line, word, temp; 
+
+	newfile.open(filename,ios::in); //open a file to perform read operation using file object
+   if (newfile.is_open()){   //checking whether the file is open
+      string tp;
+      while(getline(newfile, tp)){ //read data from file object and put it into string.
+         //cout <<"\n"; //print the data of the string
+         std::string delimiter = ",";
+          
+          size_t pos = 0;
+          
+          while ((pos = tp.find(delimiter)) != std::string::npos) {
+              float token = stof(tp.substr(0, pos));
+              //std::cout << token << " ";
+              row.push_back(token);
+              tp.erase(0, pos + delimiter.length());
+          }
+       
+      }
+      newfile.close(); //close the file object.
+   }
+   return row;
+}
+
+
+
+
+
 int main()
 {
+    struct timespec start_e2e, end_e2e, start_alg, end_alg, e2e, alg;
+	/* Should start before anything else */
+  	clock_gettime(CLK, &start_e2e);
 
+/******************************************************
     int colSizeA=6;  //should initialise columns size in A
     int rowSizeA = 3;  //should initialise columns row in A[][] vector
 
@@ -375,11 +482,32 @@ int main()
         for(int i=0;i<colSizeA;i++){
             c[i] = C[i];
        }
-
-
+       
+*////////////////////////////////////////////
+       vector<vector<float> > vec2D= read_recordA("A.txt");
+       vector<float> b= read_record("b.txt");
+       vector<float> c= read_record("c.txt");
       // hear the make the class parameters with A[m][n] vector b[] vector and c[] vector
       Simplex simplex(vec2D,b,c);
-      simplex.CalculateSimplex();
+      clock_gettime(CLK, &start_alg);	
+      
+      ////////////////////////////////////////////////////////////////////////////////
+      int N=1;
+      for(int i=0;i<N;i++)
+        simplex.CalculateSimplex();
+      ///////////////////////////////////////////////////////////////////////////////
+      
+      clock_gettime(CLK, &end_alg);
+      
+      clock_gettime(CLK, &end_e2e);
+      
+    	e2e = diff(start_e2e, end_e2e);
+    	alg = diff(start_alg, end_alg);
+      double e2eans=(e2e.tv_sec*1000000000 + e2e.tv_nsec)/(N);
+      double algans=(alg.tv_sec*1000000000 + alg.tv_nsec)/(N);
+
+    	//cout<<" "<<e2e.tv_sec<<" "<<e2e.tv_nsec<<" "<<alg.tv_sec<<" "<<alg.tv_nsec<<" ";
+      cout<<e2eans<<" "<<algans<<"\n";
 
 
     return 0;

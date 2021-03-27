@@ -1,6 +1,6 @@
+#include<bits/stdc++.h>
 #include <stdlib.h>
 #include <cstdio>
-#include <omp.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -8,14 +8,13 @@
 #include <math.h>
 #include <cstring>
 #include <string>
-
-#include "time.h"
-
+#include <time.h>
+#include <omp.h>
 
 using namespace std;
 
 double **tableau;
-ofstream log_file;
+// ofstream log_file;
 
 struct Compare_Max {
     double val = 0;
@@ -26,6 +25,7 @@ struct Compare_Min {
     double val = HUGE_VAL;
     int index = -1;
 };
+
 #pragma omp declare reduction(minimo : struct Compare_Min : omp_out = omp_in.val < omp_out.val ? omp_in : omp_out)
 #pragma omp declare reduction(maximo : struct Compare_Max : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
 
@@ -131,21 +131,28 @@ vector<T> string_to_vector(string s) {
  */
 void get_dimension(char** argv, int &nL, int &nC) {
     int dimension[2] = {0, 0}, i = 0;
-
-    char *pch = strtok(argv[1], "x/_");
+  //cout<<argv[1]<<endl;
+    char *pch = strtok(argv[1], "x");
+    
     while (pch != NULL) {
 
-        if (i == 1) {
+        if (i == 0) {
             dimension[0] = atoi(pch);
         }
-        if (i == 2) {
+        //cout<<atoi(pch)<< " " <<i<<endl;
+        if (i == 1) {
             dimension[1] = atoi(pch);
         }
-        pch = strtok(NULL, "x/_");
+       
+        pch = strtok(NULL, "x");
+        
         i++;
     }
+    
+    cout<<dimension[0]<<endl<<dimension[1]<<endl;
     nL = dimension[0] + 1;
     nC = dimension[0] + dimension[1] + 1;
+    //cout<<nL<<endl<<nC<<endl;
 }
 
 /**
@@ -155,12 +162,11 @@ void get_dimension(char** argv, int &nL, int &nC) {
  * @param nC
  * @return 
  */
-
 double ** read_data(char** argv, int& nL, int& nC) {
 
     ifstream file(argv[1]);
 
-    log_file.open("log_cpp", ofstream::app);
+    // log_file.open("log_cpp", ofstream::app);
 
     if (!file.is_open()) {
         cerr << "Error opening file";
@@ -169,10 +175,10 @@ double ** read_data(char** argv, int& nL, int& nC) {
 
     get_dimension(argv, nL, nC);
 
-    log_file << "----" << nL << "x" << nC << "----" << endl << endl;
+    cout << "----" << nL << "x" << nC << "----" << endl << endl;
 
     double ** tableau = alocate_matrix(nL, nC);
-
+    
     int lin = 0;
     string line;
     vector<int> sizes_col;
@@ -186,12 +192,20 @@ double ** read_data(char** argv, int& nL, int& nC) {
         sizes_col.push_back(contraint.size());
     }
 
-    log_file << "lin " << lin << endl << "col:\n";
+    // log_file << "lin " << lin << endl << "col:\n";
 
-    for (uint i = 0; i < sizes_col.size(); i++) {
-        log_file << i << " : " << sizes_col[i] << endl;
+    // for (uint i = 0; i < sizes_col.size(); i++) {
+    //     log_file << i << " : " << sizes_col[i] << endl;
+    // }
+    for(int i=0;i<nL;i++)
+    {
+      for(int j=0;j<nC;j++)
+      {
+      cout<<tableau[i][j]<<" ";
+      }
+      cout<<endl;
+      
     }
-
 
     return tableau;
 }
@@ -211,18 +225,22 @@ int main(int argc, char** argv) {
     constraintNumb--;
     colNumb--;
 
-    from_string<int>(numbThreads, string(argv[2]), std::dec);
-
+    //from_string<int>(numbThreads, string(argv[2]), std::dec);
+    numbThreads=atoi(argv[2]);
     omp_set_num_threads(numbThreads);
+    
     //-----
-    log_file << "numbThreads " << numbThreads << endl;
+    cout<<numbThreads<<endl;
+    // log_file << "numbThreads " << numbThreads << endl;
 
     ni = 0;
 
     struct timespec timeTotalInit, timeTotalEnd;
 
-    from_string<int>(chunk, string(argv[3]), std::dec);
-    log_file << "chunk " << chunk << endl;
+    //from_string<int>(chunk, string(argv[3]), std::dec);
+    chunk=atoi(argv[3]);
+    cout<<chunk<<endl;
+    // log_file << "chunk " << chunk << endl;
 
     struct Compare_Max max;
     struct Compare_Min min;
@@ -265,7 +283,7 @@ int main(int argc, char** argv) {
 #pragma omp single nowait //testar com mais singles
             {
                 if (count == constraintNumb) {
-                    printf("Solução nao encontrada\n");
+                    // printf("Solu��o nao encontrada\n");
                     exit(1);
                 } else
                     count = 0;
@@ -311,6 +329,8 @@ int main(int argc, char** argv) {
                 min.val = HUGE_VAL;
             }
         } while (conta);
+        
+
     }
 
 
@@ -327,5 +347,7 @@ int main(int argc, char** argv) {
     printf("%d %f \n", ni, tableau[constraintNumb][colNumb]);
 
     delete_matrix(tableau, constraintNumb);
-    log_file.close();
+    // log_file.close();
+return 0;
+
 }
