@@ -12,9 +12,9 @@ clear all
 %d is the density 
 for d=[0.1,0.5,0.9]
     m=32;
-    while m<257
-        n=32;
-        while n<257
+    while m<64
+        n=64;
+        while n<65
             pl=inline('(abs(x)+x)/2');
             A=sprand(m,n,d);
             A=100*(A-0.5*spones(A)); x=sparse(10*pl(rand(n,1)));
@@ -26,9 +26,9 @@ for d=[0.1,0.5,0.9]
             T=table(full(temp));
             file_name = strcat(strcat(strcat(strcat(strcat('str',num2str(d*10)),'_'),num2str(m)),'x'),num2str(n));
             writetable(T,file_name,'Delimiter',' ','WriteRowNames',false,'WriteVariableNames',0);
-            n=n*2;m=m*2;
+            n=n*2;
         end
-        m=m*2;
+        m=1029;
         
     end
 end
